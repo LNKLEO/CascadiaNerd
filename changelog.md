@@ -2,6 +2,64 @@ CHANGELOG
 ================================================================================
 This project is using [Semantic Versioning 2.0.0](http://semver.org/)
 
+## v3.1.0
+
+This release fixes some bugs and adds fonts. More icons will come with the next release.
+
+We also sunset in-repo releases (new fonts will only be released as release artifact) #1360
+
+### New fonts and updates
+ - Add 0xProto @piraces #1381
+ - Add Cascadia Mono #1412
+ - Add Commit Mono #1414
+ - Add D2Coding #1413
+ - Add Envy Code R #1318 (already since 3.0.2b)
+ - Add Geist Mono @QuiiBz #1398
+ - Add IntelOne Mono @ (already since 3.0.2b)
+ - Add Iosevka Term Slab #803
+ - Add Martian Mono @skryukov #1092
+ - Add Monaspace @julien-blanchon #1405
+ - Update Lilex to v2.3.0 #1356
+ - Update MPlus #1357
+
+### Fixes
+ - Fix naming problem (Visual Studio) #1406
+ - Fix fi-ligature in Noto Sans Mono #1400
+ - Fix logging error in font-patcher @lolicon0930 #1287
+
+### Features
+ - Add Common Lisp and Scheme icon #1428
+ - Add Fennel icon @Grazfather #1129
+ - Add Neovim icon @georgeguimaraes #1391
+ - Update Font Logos to v1.1.1 @hasecilu 1427
+ - Update Windows icon to Windows 11 #1290
+ - Add font-patcher option to specify metrics source #1300
+ - Add font-patcher option to specify naming source #1319 #1282
+ - Add font-patcher option to specify box drawing glyph behavior #1300
+ - test-fonts.sh: allow wrapping at any number @hasecilu #1270
+
+### Website and docs
+ A lot of work has been done here by various people, thank you all!
+
+## v3.0.2
+
+**One general fix and some font specific ones**
+
+Note the breaking changes introduced with the `v3.0.0` release.
+If you miss icons, check #1190 and probably https://github.com/loichyan/nerdfix
+
+### Fixes
+ - Bugfix `Codicon` Circles #1261
+ - Fix `DaddyTimeMono NFM` #1244
+ - Fix `fsSelection` for `--has-no-italic` (`Bitstream Vera` + `DejaVu`) #1255
+ - Fix naming of some fonts of BlexMono and GohuFont
+
+### Features
+ - Allow not renaming the font #1282 for `Cascadia Code` self-patcher (#1242)
+ - Create `tar.xz` packs now automated #1235
+ - Improve cheat sheet @rszyma #1252 #1254
+ - `test-fonts.sh`: allow wrapping at any number by @hasecilu #1270
+
 ## v3.0.1
 
 This bugfix release handles the following issues.

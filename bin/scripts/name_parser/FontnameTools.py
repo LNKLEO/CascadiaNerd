@@ -175,7 +175,7 @@ class FontnameTools:
         """Filter out characters that are not allowed in Postscript names"""
         # The name string must be restricted to the printable ASCII subset, codes 33 to 126,
         # except for the 10 characters '[', ']', '(', ')', '{', '}', '<', '>', '/', '%'
-        out = ""
+        out = ''
         for c in name:
             if c in '[](){}<>/%' or ord(c) < 33 or ord(c) > 126:
                 continue
@@ -183,26 +183,27 @@ class FontnameTools:
         return out
 
     SIL_TABLE = [
+        ( '(a)nka/(c)oder',             r'\1na\2onder' ),
         ( '(a)nonymous',                r'\1nonymice' ),
         ( '(b)itstream( ?)(v)era( ?sans ?mono)?', r'\1itstrom\2Wera' ),
-        ( '(s)ource',                   r'\1auce' ),
-        ( '(h)ermit',                   r'\1urmit' ),
-        ( '(h)asklig',                  r'\1asklug' ),
-        ( '(s)hare',                    r'\1hure' ),
-        ( 'IBM[- ]?plex',               r'Blex' ), # We do not keep the case here
-        ( '(t)erminus',                 r'\1erminess' ),
-        ( '(l)iberation',               r'\1iteration' ),
-        ( 'iA([- ]?)writer',            r'iM\1Writing' ),
-        ( '(a)nka/(c)oder',             r'\1na\2onder' ),
         ( '(c)ascadia( ?)(c)ode',       r'\1askaydia\2\3ove' ),
         ( '(c)ascadia( ?)(m)ono',       r'\1askaydia\2\3ono' ),
-        ( '(m)( ?)plus',                r'\1+'), # Added this, because they use a plus symbol :->
         ( 'Gohufont',                   r'GohuFont'), # Correct to CamelCase
+        ( '(h)ermit',                   r'\1urmit' ),
+        ( '(h)asklig',                  r'\1asklug' ),
+        ( 'iA([- ]?)writer',            r'iM\1Writing' ),
+        ( 'IBM[- ]?plex',               r'Blex' ), # We do not keep the case here
+        ( '(i)ntel( ?)(o)ne',           r'\1ntone' ),
+        ( '(l)iberation',               r'\1iteration' ),
+        ( '(m)onaspace',                r'\1onaspice' ),
+        ( '(m)( ?)plus',                r'\1+'), # Added this, because they use a plus symbol :->
+        ( '(s)hare',                    r'\1hure' ),
+        ( '(s)ource',                   r'\1auce' ),
+        ( '(t)erminus',                 r'\1erminess' ),
         # Noone cares that font names starting with a digit are forbidden:
         ( 'IBM 3270',                   r'3270'), # for historical reasons and 'IBM' is a TM or something
         # Some name parts that are too long for us
         ( '(.*sans ?m)ono',             r'\1'), # Various SomenameSansMono fonts
-        ( '(.*code ?lat)in Expanded',   r'\1X'), # for 'M PLUS Code Latin Expanded'
         ( '(.*code ?lat)in',            r'\1'), # for 'M PLUS Code Latin'
         ( '(b)ig( ?)(b)lue( ?)(t)erminal', r'\1ig\3lue\5erm'), # Shorten BigBlueTerminal
         ( '(.*)437TT',                  r'\g<1>437'), # Shorten BigBlueTerminal 437 TT even further
@@ -211,6 +212,11 @@ class FontnameTools:
         ( '(overpass ?m)ono',           r'\1'), # Overpass Mono -> Overpass M
         ( '(proggyclean) ?tt',          r'\1'), # Remove TT from ProggyClean
         ( '(terminess) ?\(ttf\)',       r'\1'), # Remove TTF from Terminus (after renamed to Terminess)
+        ( '(.*ne)on',                   r'\1'), # Monaspace shorten face name
+        ( '(.*ar)gon',                  r'\1'), # Monaspace shorten face name
+        ( '(.*kr)ypton',                r'\1'), # Monaspace shorten face name
+        ( '(.*xe)non',                  r'\1'), # Monaspace shorten face name
+        ( '(.*r)adon',                  r'\1d'), # Monaspace shorten face name
         ( '(im ?writing ?q)uattro',     r'\1uat'), # Rename iM Writing Quattro to Quat
         ( '(im ?writing ?(mono|duo|quat)) ?s', r'\1'), # Remove S from all iM Writing styles
     ]
@@ -246,6 +252,9 @@ class FontnameTools:
         'Light': ('Lt', 'Light'),
         ' ': (), # Just for CodeClimate :-/
     }
+    known_styles = [ # Keywords that end up as style (i.e. a RIBBI set)
+        'Bold', 'Italic', 'Regular', 'Normal'
+    ]
     known_widths = { # can take modifiers
         'Compressed': ('Cm', 'Comp'),
         'Extended': ('Ex', 'Extd'),
@@ -267,6 +276,52 @@ class FontnameTools:
         'Semi': ('Sm', 'Sem'),
         'Extra': ('X', 'Ext'),
     }
+    equivalent_weights = {
+        100: ('thin', 'hairline'),
+        200: ('extralight', 'ultralight'),
+        300: ('light', ),
+        350: ('semilight', ),
+        400: ('regular', 'normal', 'book', 'text', 'nord', 'retina'),
+        500: ('medium', ),
+        600: ('semibold', 'demibold', 'demi'),
+        700: ('bold', ),
+        800: ('extrabold', 'ultrabold'),
+        900: ('black', 'heavy', 'poster', 'extrablack', 'ultrablack'),
+    }
+
+    @staticmethod
+    def weight_string_to_number(w):
+        """ Convert a common string approximation to a PS/2 weight value """
+        if not isinstance(w, str) or len(w) < 1:
+            return 400
+        w = w.lower().replace('-', '').replace(' ', '')
+        for num, strs in FontnameTools.equivalent_weights.items():
+            if w in strs:
+                return num
+        return None
+
+    @staticmethod
+    def weight_to_string(w):
+        """ Convert a PS/2 weight value to the common string approximation """
+        if w < 150:
+            str = 'Thin'
+        elif w < 250:
+            str = 'Extra-Light'
+        elif w < 350:
+            str = 'Light'
+        elif w < 450:
+            str = 'Regular'
+        elif w < 550:
+            str = 'Medium'
+        elif w < 650:
+            str = 'Semi-Bold'
+        elif w < 750:
+            str = 'Bold'
+        elif w < 850:
+            str = 'Extra-Bold'
+        else:
+            str = 'Black'
+        return str
 
     @staticmethod
     def is_keep_regular(basename):
@@ -341,8 +396,7 @@ class FontnameTools:
                 for s in list(FontnameTools.known_weights2) + list(FontnameTools.known_widths)
                 for m in list(FontnameTools.known_modifiers) + [''] if m != s
             ] + list(FontnameTools.known_weights1) + list(FontnameTools.known_slopes)
-        styles = [ 'Bold', 'Italic', 'Regular', 'Normal', ]
-        weights = [ w for w in weights if w not in styles ]
+        weights = [ w for w in weights if w not in FontnameTools.known_styles ]
         # Some font specialities:
         other = [
             '-', 'Book', 'For', 'Powerline',
@@ -354,7 +408,7 @@ class FontnameTools:
         ]
 
         ( style, weight_token ) = FontnameTools.get_name_token(style, weights)
-        ( style, style_token ) = FontnameTools.get_name_token(style, styles)
+        ( style, style_token ) = FontnameTools.get_name_token(style, FontnameTools.known_styles)
         ( style, other_token ) = FontnameTools.get_name_token(style, other)
         while 'Regular' in style_token and len(style_token) > 1:
             # Correct situation where "Regular" and something else is given

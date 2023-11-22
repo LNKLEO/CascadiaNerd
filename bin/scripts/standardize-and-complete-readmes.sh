@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Nerd Fonts Version: 3.0.2
-# Script Version: 1.1.2
+# Nerd Fonts Version: 3.1.0
+# Script Version: 1.1.4
 # Iterates over all patched fonts directories
 # converts all non markdown readmes to markdown (e.g., txt, rst) using pandoc
 # adds information on additional-variations and complete font variations
@@ -17,6 +17,19 @@ cd "$sd/../../src/unpatched-fonts/" || {
   exit 1
 }
 
+
+function appendGeneralInfo {
+  local dest=$1; shift
+  local fontname=$1; shift
+  local has_repo=$1; shift
+  if [ -n "${has_repo}" ]
+  then
+    downloadfrom="Or download the development version from the folders here"
+  else
+    downloadfrom="Direct links for [${fontname}.zip](https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${fontname}.zip) or [${fontname}.tar.xz](https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${fontname}.tar.xz)"
+  fi
+  sed -e "s|%DOWNLOADFROM%|${downloadfrom}|" "${sd}/../../src/readme-per-directory-addendum.md" >> "${dest}"
+}
 
 function appendRfnInfo {
   local config_rfn=$1; shift
@@ -81,12 +94,20 @@ do
     then
       config_rfn=$(echo "$fontdata" | jq -r .unpatchedName)
       config_rfn_substitue=$(echo "$fontdata" | jq -r .patchedName)
-      if [ "${config_rfn}" = "${config_rfn_substitue}" ]
+      check_config_rfn=$(tr '[:upper:]' '[:lower:]' <<< "$config_rfn" | tr -d ' ')
+      check_config_rfn_sub=$(tr '[:upper:]' '[:lower:]' <<< "$config_rfn_substitue" | tr -d ' ')
+      if [ "${check_config_rfn}" = "${check_config_rfn_sub}" ]
       then
-        # Only the case with Mononoki which is RFN but we do not rename (we got the permission to keep the name)
+        # Only the case with Mononoki and Envy Code R which is RFN but we do not rename (we got the permission to keep the name)
         unset config_rfn
         unset config_rfn_substitue
       fi
+    fi
+    unset release_to_repo
+    # This defaults to true if no info is given:
+    if [ "$(echo "$fontdata" | jq .repoRelease)" != "false" ]
+    then
+        release_to_repo=TRUE
     fi
   fi
 
@@ -99,72 +120,44 @@ do
 
   [[ -d "$outputdir" ]] || mkdir -p "$outputdir"
 
+  to_dir="${patched_parent_dir}/$filename"
+  to="${to_dir}/$infofilename"
 
   if [ "${RST[0]}" ];
   then
     for i in "${RST[@]}"
     do
       echo "$LINE_PREFIX Found RST"
-
       from="$unpatched_parent_dir/$i"
-      to_dir="${patched_parent_dir}/$filename"
-      to="${to_dir}/$infofilename"
-
       clearDestination "$to_dir" "$to"
-
       pandoc "$from" --from=rst --to=markdown --output="$to"
-
-      appendRfnInfo "$config_rfn" "$config_rfn_substitue" "$sd" "$to"
-      cat "$sd/../../src/readme-per-directory-addendum.md" >> "$to"
     done
   elif [ "${TXT[0]}" ];
   then
     for i in "${TXT[@]}"
     do
       echo "$LINE_PREFIX Found TXT"
-
       from="$unpatched_parent_dir/$i"
-      to_dir="${patched_parent_dir}/$filename"
-      to="${to_dir}/$infofilename"
-
       clearDestination "$to_dir" "$to"
-
       cp "$from" "$to"
-
-      appendRfnInfo "$config_rfn" "$config_rfn_substitue" "$sd" "$to"
-      cat "$sd/../../src/readme-per-directory-addendum.md" >> "$to"
     done
   elif [ "${MD[0]}" ];
   then
     for i in "${MD[@]}"
     do
       echo "$LINE_PREFIX Found MD"
-
       from="$unpatched_parent_dir/$i"
-      to_dir="${patched_parent_dir}/$filename"
-      to="${to_dir}/$infofilename"
-
       clearDestination "$to_dir" "$to"
-
       cp "$from" "$to"
-
-      appendRfnInfo "$config_rfn" "$config_rfn_substitue" "$sd" "$to"
-      cat "$sd/../../src/readme-per-directory-addendum.md" >> "$to"
     done
   else
     echo "$LINE_PREFIX Did not find any readme files (RST,TXT,MD) generating just title of Font"
-
-    to_dir="${patched_parent_dir}/$filename"
-    to="${to_dir}/$infofilename"
-
     clearDestination "$to_dir" "$to"
-
     {
       printf "# %s\\n\\n" "$base_directory"
     } >> "$to"
-
-    appendRfnInfo "$config_rfn" "$config_rfn_substitue" "$sd" "$to"
-    cat "$sd/../../src/readme-per-directory-addendum.md" >> "$to"
   fi
+  appendRfnInfo "$config_rfn" "$config_rfn_substitue" "$sd" "$to"
+  appendGeneralInfo "$to" "$base_directory" "$release_to_repo"
 
 done

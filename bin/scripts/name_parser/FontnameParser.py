@@ -180,10 +180,24 @@ class FontnameParser:
         sub = FontnameTools.postscript_char_filter(sub)
         return self._make_ps_name(fam + sub, False)
 
+    def long_family(self):
+        """Get unabbreviated Familyname"""
+        (name, rest) = self._shortened_name()
+        return FontnameTools.concat(name, rest, self.other_token, self.family_suff)
+
+    def long_subfamily(self):
+        """Get unabbreviated Styles"""
+        return FontnameTools.concat(self.weight_token, self.style_token)
+
     def preferred_family(self):
         """Get the SFNT Preferred Familyname (ID 16)"""
         (name, rest) = self._shortened_name()
-        pfn = FontnameTools.concat(name, rest, self.other_token, self.family_suff)
+        other = self.other_token
+        weights = self.weight_token
+        aggressive = self.use_short_families[2]
+        if self.use_short_families[1]:
+            [ other, weights ] = FontnameTools.short_styles([ other, weights ], aggressive)
+        pfn = FontnameTools.concat(name, rest, other, self.short_family_suff)
         if self.suppress_preferred_if_identical and pfn == self.family():
             # Do not set if identical to ID 1
             return ''
@@ -271,12 +285,38 @@ class FontnameParser:
             self.logger.error('====-< {:18} too long ({:2} > {:2}): {}'.format(entry_id, len(name), max_len, name))
         return name
 
+    def check_weights(self, font):
+        """ Check weight metadata for consistency """
+        # Some weights are hidden in styles
+        ignore_token = list(FontnameTools.known_widths) + list(FontnameTools.known_slopes)
+        ignore_token += [ m + s
+                        for s in list(FontnameTools.known_widths)
+                        for m in list(FontnameTools.known_modifiers) ]
+        restored_weight_token = [ w for w in self.style_token + self.weight_token if w not in ignore_token ]
+        weight = ''.join(restored_weight_token)
+        os2_weight = font.os2_weight
+        ps_weight = FontnameTools.weight_string_to_number(font.weight)
+        name_weight = FontnameTools.weight_string_to_number(weight)
+        weightproblem = False
+        if ps_weight is None:
+            self.logger.warn('Can not parse PS-weight: {}'.format(font.weight))
+            weightproblem = True
+        if name_weight is None:
+            self.logger.warn('Can not parse name for weight: {}'.format(weight))
+            weightproblem = True
+        if weightproblem or abs(os2_weight - ps_weight) > 50 or abs(os2_weight - name_weight) > 50:
+            self.logger.warning('Possible problem with the weight metadata detected, check with --debug')
+        self.logger.debug('Weight approximations: OS2/PS/Name: {}/{}/{} (from {}/\'{}\'/\'{}\')'.format(
+            os2_weight, ps_weight, name_weight,
+            font.os2_weight, font.weight, weight))
+
     def rename_font(self, font):
         """Rename the font to include all information we found (font is fontforge font object)"""
         font.fondname = None
         font.fontname = self.psname()
         font.fullname = self.fullname()
         font.familyname = self.ps_familyname()
+        self.check_weights(font)
 
         # We have to work around several issues in fontforge:
         #

@@ -1035,7 +1035,7 @@
       "login": "kraftwerk28",
       "name": "Vsevolod",
       "avatar_url": "https://avatars.githubusercontent.com/u/31807671?v=4",
-      "profile": "http://///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////kraftwerk28.pp.ua",
+      "profile": "http://kraftwerk28.pp.ua",
       "contributions": [
         "code"
       ]
@@ -1318,9 +1318,136 @@
       "login": "N-R-K",
       "name": "NRK",
       "avatar_url": "https://avatars.githubusercontent.com/u/79544946?v=4",
-      "profile": "https://github.com/N-R-K"
+      "profile": "https://github.com/N-R-K",
       "contributions": [
         "ideas"
+      ]
+    },
+    {
+      "login": "loichyan",
+      "name": "loichyan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/73006950?v=4",
+      "profile": "https://loichyan.me",
+      "contributions": [
+        "tool"
+      ]
+    },
+    {
+      "login": "senketsu03",
+      "name": "senketsu03",
+      "avatar_url": "https://avatars.githubusercontent.com/u/111694096?v=4",
+      "profile": "https://github.com/senketsu03",
+      "contributions": [
+        "translation"
+      ]
+    },
+    {
+      "login": "sorashi",
+      "name": "Dennis Pražák",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6270283?v=4",
+      "profile": "https://github.com/sorashi",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "sqwxl",
+      "name": "Nicolas Epstein",
+      "avatar_url": "https://avatars.githubusercontent.com/u/55964909?v=4",
+      "profile": "http://nilueps.net",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "LeoniePhiline",
+      "name": "LeoniePhiline",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22329650?v=4",
+      "profile": "https://github.com/LeoniePhiline",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "frantisekhanzlikbl",
+      "name": "František Hanzlík",
+      "avatar_url": "https://avatars.githubusercontent.com/u/43645405?v=4",
+      "profile": "https://github.com/frantisekhanzlikbl",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "VitthalGund",
+      "name": "Vitthal Popat Gund",
+      "avatar_url": "https://avatars.githubusercontent.com/u/97181033?v=4",
+      "profile": "https://github.com/VitthalGund",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "piraces",
+      "name": "Raul Piraces Alastuey",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11027628?v=4",
+      "profile": "https://piraces.dev",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kingarrrt",
+      "name": "King Art",
+      "avatar_url": "https://avatars.githubusercontent.com/u/752293?v=4",
+      "profile": "https://github.com/kingarrrt",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "georgeguimaraes",
+      "name": "George Guimarães",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2929?v=4",
+      "profile": "https://sourcelevel.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Grazfather",
+      "name": "Grazfather",
+      "avatar_url": "https://avatars.githubusercontent.com/u/497310?v=4",
+      "profile": "https://twitter.com/Grazfather",
+      "contributions": [
+        "code",
+        "design"
+      ]
+    },
+    {
+      "login": "QuiiBz",
+      "name": "Tom Lienard",
+      "avatar_url": "https://avatars.githubusercontent.com/u/43268759?v=4",
+      "profile": "https://tom.lnrd.fr",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "skryukov",
+      "name": "Svyatoslav Kryukov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23056378?v=4",
+      "profile": "https://github.com/skryukov",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "julien-blanchon",
+      "name": "Blanchon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11278197?v=4",
+      "profile": "https://github.com/julien-blanchon",
+      "contributions": [
+        "code"
       ]
     }
   ],

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nerd Fonts Version: 3.0.2
+# Nerd Fonts Version: 3.1.0
 # Script Version: 1.2.2
 # Create font previews.
 # All fonts need to be installed (or no preview is generated)
@@ -19,7 +19,7 @@ main() {
   for i in $(jq '.fonts | keys | .[]' lib/fonts.json); do
     patchedName=$(jq -r ".fonts[$i].patchedName" lib/fonts.json);
     imagePreviewFont=$(jq -r ".fonts[$i].imagePreviewFont" lib/fonts.json);
-    if [ "$imagePreviewFont" != "$patchedName Nerd Font" ]; then
+    if [ "$imagePreviewFont" != "$patchedName Nerd Font" ] && [ "$imagePreviewFont" != "$patchedName NF" ]; then
       echo "[mismatch] (Fam vs name)  $imagePreviewFont <=> $patchedName"
     fi
     if [ -z "$imagePreviewFont" ]; then
@@ -43,7 +43,7 @@ generate_preview() {
   fontText=$2
   echo "[Generating] $font"
   sed -e "s/000000/ffffff/" -e "s/sans-serif/${font}/" -e "s/Font Name/${fontText}/" <"$template_svg" >"${output_dir}${font}.svg"
-  inkscape "${output_dir}${font}.svg" -g "--verb=EditSelectAll;ObjectToPath;FileVacuum;FitCanvasToDrawing;FileSave;FileQuit" 2>/dev/null
+  inkscape "${output_dir}${font}.svg" --actions="select-all; object-to-path; vacuum-defs; fit-canvas-to-selection; export-filename:${output_dir}${font}.svg; export-do"
   # svgo "${output_dir}${font}.svg"
 }
 
@@ -52,12 +52,13 @@ generate_preview_symbols() {
   fontText=$2
   echo "[Gen. Symb.] $font"
   sed -e "s/000000/ffffff/" -e "40,80s/sans-serif/${font}/" -e "s/Font Name/${fontText}/" <"$template2_svg" >"${output_dir}${font}.svg"
-  inkscape "${output_dir}${font}.svg" -g "--verb=EditSelectAll;ObjectToPath;FileVacuum;FitCanvasToDrawing;FileSave;FileQuit" 2>/dev/null
+  inkscape "${output_dir}${font}.svg" --actions="select-all; object-to-path; vacuum-defs; fit-canvas-to-selection; export-filename:${output_dir}${font}.svg; export-do"
   # svgo "${output_dir}${font}.svg"
 }
 
 # shellcheck disable=SC2034 # used by commented out code (on demand)
 image_font_files=( \
+  '0xProto/0xProtoNerdFont-Regular.ttf' \
   '3270/Regular/3270NerdFont-Regular.ttf' \
   'Agave/AgaveNerdFont-Regular.ttf' \
   'AnonymousPro/Regular/AnonymiceProNerdFont-Regular.ttf' \
@@ -66,15 +67,20 @@ image_font_files=( \
   'BigBlueTerminal/BigBlueTermPlusNerdFont-Regular.ttf' \
   'BitstreamVeraSansMono/Regular/BitstromWeraNerdFont-Regular.ttf' \
   'CascadiaCode/Regular/CaskaydiaCoveNerdFont-Regular.ttf' \
+  'CascadiaMono/CaskaydiaMonoNerdFont-Regular.ttf' \
   'CodeNewRoman/Regular/CodeNewRomanNerdFont-Regular.otf' \
   'ComicShannsMono/ComicShannsMonoNerdFont-Regular.otf' \
+  'CommitMono/CommitMonoNerdFont-Regular.otf' \
   'Cousine/Regular/CousineNerdFont-Regular.ttf' \
+  'D2Coding/D2CodingLigatureNerdFont-Regular.ttf' \
   'DaddyTimeMono/DaddyTimeMonoNerdFont-Regular.ttf' \
   'DejaVuSansMono/Regular/DejaVuSansMNerdFont-Regular.ttf' \
   'DroidSansMono/DroidSansMNerdFont-Regular.otf' \
+  'EnvyCodeR/EnvyCodeRNerdFont-Regular.ttf' \
   'FantasqueSansMono/Regular/FantasqueSansMNerdFont-Regular.ttf' \
   'FiraCode/Regular/FiraCodeNerdFont-Regular.ttf' \
   'FiraMono/Regular/FiraMonoNerdFont-Regular.otf' \
+  'GeistMono/Regular/GeistMonoNerdFont-Regular.otf' \
   'Gohu/14/GohuFont14NerdFont-Regular.ttf' \
   'Go-Mono/Regular/GoMonoNerdFont-Regular.ttf' \
   'Hack/Regular/HackNerdFont-Regular.ttf' \
@@ -86,18 +92,22 @@ image_font_files=( \
   'Inconsolata/InconsolataNerdFont-Regular.ttf' \
   'InconsolataGo/Regular/InconsolataGoNerdFont-Regular.ttf' \
   'InconsolataLGC/Regular/InconsolataLGCNerdFont-Regular.ttf' \
+  'IntelOneMono/Regular/IntoneMonoNerdFont-Regular.ttf' \
   'Iosevka/Regular/IosevkaNerdFont-Regular.ttf' \
   'IosevkaTerm/Regular/IosevkaTermNerdFont-Regular.ttf' \
+  'IosevkaTermSlab/IosevkaTermSlabNerdFont-Regular.ttf' \
   'JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf' \
   'Lekton/Regular/LektonNerdFont-Regular.ttf' \
   'LiberationMono/LiterationMonoNerdFont-Regular.ttf' \
   'Lilex/Regular/LilexNerdFont-Regular.ttf' \
+  'MartianMono/Std/MartianMonoNerdFont-Regular.ttf' \
   'Meslo/M/Regular/MesloLGMNerdFont-Regular.ttf' \
+  'Monaspace/Neon/MonaspiceNeNerdFont-Regular.otf' \
   'Monofur/Regular/MonofurNerdFont-Regular.ttf' \
   'Monoid/Regular/MonoidNerdFont-Regular.ttf' \
   'Mononoki/Regular/MononokiNerdFont-Regular.ttf' \
   'MPlus/M_Plus_1_code/M+1CodeNerdFont-Regular.ttf' \
-  'NerdFontsSymbolsOnly/Symbols2048EmNerdFontMono-Regular.ttf' \
+  'NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf' \
   'Noto/Sans-Mono/NotoSansMNerdFont-Regular.ttf' \
   'OpenDyslexic/Regular/OpenDyslexicNerdFont-Regular.otf' \
   'Overpass/Mono/Regular/OverpassMNerdFont-Regular.otf' \
@@ -124,7 +134,8 @@ image_font_files=( \
 # Enable this to get a list of Family names
 #
 # for f in "${image_font_files[@]}"; do
-#   fc-query "../../patched-fonts/$f" '-f %{family}\n'
+#   fc-query "../../patched-fonts/$f" '-f %{family}\n' || true
 # done
+# exit
 
 main "$@"; exit
