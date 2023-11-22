@@ -865,7 +865,6 @@ class font_patcher:
         if len(self.xavgwidth) > 1 and isinstance(self.xavgwidth[-1], int) and self.xavgwidth[-1] == 0:
             self.xavgwidth[-1] = get_old_average_x_width(self.sourceFont)
 
-
     def get_scale_factors(self, sym_dim, stretch):
         """ Get scale in x and y as tuple """
         # It is possible to have empty glyphs, so we need to skip those.
