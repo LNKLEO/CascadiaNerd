@@ -24,7 +24,6 @@ import string
 # import json
 from enum import Enum
 import logging
-# sys.path.insert(0, os.path.abspath(os.path.dirname(sys.argv[0])) + '/bin/scripts/name_parser/')
 
 class TableHEADWriter:
     """ Access to the HEAD table without external dependencies """
