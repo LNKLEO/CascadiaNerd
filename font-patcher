@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding=utf8
-# Nerd Fonts Version: 3.1.0
+# Nerd Fonts Version: 3.1.1
 # Script version is further down
 
 from __future__ import absolute_import, print_function, unicode_literals
 
 # Change the script version when you edit this script:
-script_version = "4.8.0"
+script_version = "4.8.2"
 
-version = "3.1.0"
+version = "3.1.1"
 projectName = "Nerd Fonts"
 projectNameAbbreviation = "NF"
 projectNameSingular = projectName[:-1]
@@ -146,10 +146,13 @@ class TableHEADWriter:
     def close(self):
         self.f.close()
 
+
     def __init__(self, filename):
         self.modified = False
         self.f = open(filename, 'r+b')
+
         self.find_head_table(0)
+
         self.flags = self.getshort('flags')
         self.lowppem = self.getshort('lowestRecPPEM')
         self.checksum_adj = self.getlong('checksumAdjustment')
@@ -187,42 +190,20 @@ def get_btb_metrics(font):
     win_btb = win_height + win_gap
     return (hhea_btb, typo_btb, win_btb, win_gap)
 
-def get_old_average_x_width(font):
-    """ Determine xAvgCharWidth of the OS/2 table """
-    # Fontforge can not create fonts with old (i.e. prior to OS/2 version 3)
-    # table values, but some very old applications do need them sometimes
-    # https://learn.microsoft.com/en-us/typography/opentype/spec/os2#xavgcharwidth
-    s = 0
-    weights = {
-        'a': 64, 'b': 14, 'c': 27, 'd': 35, 'e': 100, 'f': 20, 'g': 14, 'h': 42, 'i': 63,
-        'j': 3, 'k': 6, 'l': 35, 'm': 20, 'n': 56, 'o': 56, 'p': 17, 'q': 4, 'r': 49,
-        's': 56, 't': 71, 'u': 31, 'v': 10, 'w': 18, 'x': 3, 'y': 18, 'z': 2, 32: 166,
-    }
-    for g in weights:
-        if g not in font:
-            logger.critical("Can not determine ancient style xAvgCharWidth")
-            sys.exit(1)
-        s += font[g].width * weights[g]
-    return int(s / 1000)
-
 class font_patcher:
     def __init__(self):
         self.sym_font_args = []
         self.sourceFont = None  # class 'fontforge.font'
         self.patch_set = None  # class 'list'
         self.font_dim = None  # class 'dict'
-        self.onlybitmaps = 0
-        self.font_extrawide = False
         self.symbolsonly = False # Are we generating the SymbolsOnly font?
+        self.onlybitmaps = 0
         self.essential = set()
-        self.xavgwidth = [] # list of ints
 
     def patch(self, font, variation):
         self.sourceFont = font
         self.setup_version(variation)
-        self.setup_patch_set()
         self.get_essential_references()
-        force_panose_monospaced(self.sourceFont)
         self.get_sourcefont_dimensions()
         self.setup_patch_set()
         self.improve_line_dimensions()
@@ -235,16 +216,12 @@ class font_patcher:
 
         # For some Windows applications (e.g. 'cmd') that is not enough. But they seem to honour the Panose table
         # https://forum.high-logic.com/postedfiles/Panose.pdf
+        force_panose_monospaced(self.sourceFont)
         panose = list(self.sourceFont.os2_panose)
         if panose[0] == 0 or panose[0] == 2: # 0 (1st value) = family kind; 0 = any (default); 2 = latin text and display
             panose[0] = 2 # Assert kind
             panose[3] = 9 # 3 (4th value) = propotion; 9 = monospaced
             self.sourceFont.os2_panose = tuple(panose)
-
-        # For very wide (almost square or wider) fonts we do not want to generate 2 cell wide Powerline glyphs
-        if self.font_dim['height'] * 1.8 < self.font_dim['width'] * 2:
-            logger.warning("Very wide and short font, disabling 2 cell Powerline glyphs")
-            self.font_extrawide = True
 
         # Prevent opening and closing the fontforge font. Makes things faster when patching
         # multiple ranges using the same symbol font.
@@ -306,19 +283,6 @@ class font_patcher:
         # Adjust flags that can not be changed via fontforge
         for idx in range(source_font.num_fonts):
             logger.debug("Tweaking %d/%d", idx + 1, source_font.num_fonts)
-            xwidth_s = ''
-            xwidth = self.xavgwidth[idx] if len(self.xavgwidth) > idx else None
-            if isinstance(xwidth, int):
-                if isinstance(xwidth, bool) and xwidth:
-                    source_font.find_table([b'OS/2'], idx)
-                    xwidth = source_font.getshort('avgWidth')
-                    xwidth_s = ' (copied from source)'
-                dest_font.find_table([b'OS/2'], idx)
-                d_xwidth = dest_font.getshort('avgWidth')
-                if d_xwidth != xwidth:
-                    logger.debug("Changing xAvgCharWidth from %d to %d%s", d_xwidth, xwidth, xwidth_s)
-                    dest_font.putshort(xwidth, 'avgWidth')
-                    dest_font.reset_table_checksum()
             source_font.find_head_table(idx)
             dest_font.find_head_table(idx)
             if source_font.flags & 0x08 == 0 and dest_font.flags & 0x08 != 0:
@@ -697,7 +661,6 @@ class font_patcher:
             {'Name': "Octicons",                'Filename': "octicons/octicons.ttf",                          'Exact': True,  'SymStart': 0X26A1, 'SymEnd': 0X26A1, 'SrcStart': None,   'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},  # Zap
             {'Name': "Octicons",                'Filename': "octicons/octicons.ttf",                          'Exact': False, 'SymStart': 0xF27C, 'SymEnd': 0xF306, 'SrcStart': 0xF4A9, 'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},
             {'Name': "Codicons",                'Filename': "codicons/codicon.ttf",                           'Exact': True,  'SymStart': 0xEA60, 'SymEnd': 0xEBEB, 'SrcStart': None,   'ScaleRules': CODI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},
-            # {'Name': "Custom",                  'Filename': self.args.custom,                                 'Exact': True,  'SymStart': 0x0000, 'SymEnd': 0x0000, 'SrcStart': None,   'ScaleRules': None,             'Attributes': CUSTOM_ATTR}
         ]
 
     def improve_line_dimensions(self):
@@ -801,6 +764,7 @@ class font_patcher:
             self.font_dim['ymin'] = -self.sourceFont.os2_windescent - half_gap(win_gap, False)
             self.font_dim['ymax'] = self.sourceFont.os2_winascent + half_gap(win_gap, True)
         else:
+            logger.debug("Metrics is strange")
             pass # Will fail the metrics check some line later
 
         # Calculate font height
@@ -865,9 +829,6 @@ class font_patcher:
             self.font_dim['xmax'] = self.font_dim['width'] # In fact 'xmax' is never used
         logger.debug("Final font cell dimensions %d w x %d h", self.font_dim['width'], self.font_dim['height'])
 
-        if len(self.xavgwidth) > 1 and isinstance(self.xavgwidth[-1], int) and self.xavgwidth[-1] == 0:
-            self.xavgwidth[-1] = get_old_average_x_width(self.sourceFont)
-
     def get_scale_factors(self, sym_dim, stretch):
         """ Get scale in x and y as tuple """
         # It is possible to have empty glyphs, so we need to skip those.
@@ -895,10 +856,13 @@ class font_patcher:
 
         return (scale_ratio_x, scale_ratio_y)
 
+
     def copy_glyphs(self, sourceFontStart, symbolFont, symbolFontStart, symbolFontEnd, exactEncoding, scaleRules, setName, attributes):
         """ Copies symbol glyphs into self.sourceFont """
+        progressText = ''
         careful = False
         sourceFontCounter = 0
+
 
         # Create glyphs from symbol font
         #
@@ -1085,11 +1049,11 @@ class font_patcher:
             # even the ones that are empty and didn't go through the scaling operations.
             # It should come after setting the glyph bearings
 
+            self.set_glyph_width_mono(self.sourceFont[currentSourceFontGlyph])
             (xmin, _, xmax, _) = self.sourceFont[currentSourceFontGlyph].boundingBox()
             if int(xmax - xmin) > self.font_dim['width'] * (1 + (overlap or 0)):
                 logger.warning("Scaled glyph %X wider than one monospace width (%d / %d (overlap %s))",
                     currentSourceFontGlyph, int(xmax - xmin), self.font_dim['width'], repr(overlap))
-                self.set_glyph_width_mono(self.sourceFont[currentSourceFontGlyph])
 
         sys.stdout.write("\n")
 
