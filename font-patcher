@@ -298,29 +298,41 @@ class font_patcher:
         dest_font.close()
         logger.debug(message)
 
-    def setup_font_names(self, font, variation):
+    def setup_font_names(self, font, variation, splitcollection=True):
         isItalic = font.fontname.endswith("Italic")
         style = font.fontname[13:].removesuffix("Italic")
         # the weight here is not following guideline !!!
-        weightMapping = {
-            "ExtraLight": "Regular",
-            "Light": "Bold",
-            "SemiLight": "Regular",
-            "Regular": "Bold",
-            "": "Bold",
-            "SemiBold": "Regular",
-            "Bold": "Bold",
-        }
-        familySuffixMappint = {
-            "ExtraLight": " Light",
-            "Light": " Light",
-            "SemiLight": "",
-            "Regular": "",
-            "": "",
-            "SemiBold": " Heavy",
-            "Bold": " Heavy",
-        }
-        familyname = "Cascadia " + variation + familySuffixMappint[style]
+        if splitcollection:
+            weightMapping = {
+                "ExtraLight": "Regular",
+                "Light": "Bold",
+                "SemiLight": "Regular",
+                "Regular": "Bold",
+                "": "Bold",
+                "SemiBold": "Regular",
+                "Bold": "Bold",
+            }
+            familySuffixMapping = {
+                "ExtraLight": " Light",
+                "Light": " Light",
+                "SemiLight": "",
+                "Regular": "",
+                "": "",
+                "SemiBold": " Heavy",
+                "Bold": " Heavy",
+            }
+            familyname = "Cascadia " + variation + familySuffixMapping[style]
+        else:
+            weightMapping = {
+                "ExtraLight": "Thin",
+                "Light": "Light",
+                "SemiLight": "Regular",
+                "Regular": "Medium",
+                "": "Medium",
+                "SemiBold": "Bold",
+                "Bold": "Heavy",
+            }
+            familyname = "Cascadia " + variation
         weight = weightMapping[style]
         if isItalic:
             if weight == "Regular":
