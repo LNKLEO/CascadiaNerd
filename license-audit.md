@@ -13,21 +13,21 @@ All files created such as `font-patcher` and any `ph` or `sh` script/source file
 
 ## Glyph/icon sources
 
-| Project                                          | License         |
-| ------------------------------------------------ | ----------------|
-| Codicons                                         | CC BY 4.0       |
-| Devicons                                         | MIT             |
-| Font Awesome                                     | CC BY 4.0       |
-| Font Awesome Extension                           | MIT             |
-| Font Logos                                       | Unlicensed      |
-| IEC Power Symbols                                | MIT             |
-| Material Design Icons                            | Apache 2.0      |
-| Original Source (Seti-UI but modified)           | MIT             |
-| Octicons                                         | MIT             |
-| Pomicons                                         | SIL OFL 1.1     |
-| Powerline Extra Symbols                          | MIT             |
-| Powerline Symbols                                | Free License    |
-| Weather Icons                                    | SIL OFL 1.1     |
+| Project                                | License      |
+| -------------------------------------- | ------------ |
+| Codicons                               | CC BY 4.0    |
+| Devicons                               | MIT          |
+| Font Awesome                           | CC BY 4.0    |
+| Font Awesome Extension                 | MIT          |
+| Font Logos                             | Unlicensed   |
+| IEC Power Symbols                      | MIT          |
+| Material Design Icons                  | Apache 2.0   |
+| Original Source (Seti-UI but modified) | MIT          |
+| Octicons                               | MIT          |
+| Pomicons                               | SIL OFL 1.1  |
+| Powerline Extra Symbols                | MIT          |
+| Powerline Symbols                      | Free License |
+| Weather Icons                          | SIL OFL 1.1  |
 
 ### Additional notes
 
@@ -36,6 +36,7 @@ All files created such as `font-patcher` and any `ph` or `sh` script/source file
 
 ## Fonts
 
-| Font                          | License                      |
-| ----------------------------- | ---------------------------- |
-| Cascadia Code                 | SIL OFL 1.1                  |
+| Font          | License     |
+| ------------- | ----------- |
+| Cascadia Code | SIL OFL 1.1 |
+| Maple         | SIL OFL 1.1 |

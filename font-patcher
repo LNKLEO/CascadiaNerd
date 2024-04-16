@@ -13,6 +13,8 @@ projectName = "Nerd Fonts"
 projectNameAbbreviation = "NF"
 projectNameSingular = projectName[:-1]
 
+debug = False
+
 import sys
 import os
 import errno
@@ -24,6 +26,8 @@ import string
 # import json
 from enum import Enum
 import logging
+
+from fontmeta import *
 
 class TableHEADWriter:
     """ Access to the HEAD table without external dependencies """
@@ -199,9 +203,9 @@ class font_patcher:
         self.onlybitmaps = 0
         self.essential = set()
 
-    def patch(self, font, variation):
+    def patch(self, font, family, variation):
         self.sourceFont = font
-        self.setup_version(variation)
+        self.setup_version(family, variation)
         self.get_essential_references()
         self.get_sourcefont_dimensions()
         self.setup_patch_set()
@@ -258,7 +262,7 @@ class font_patcher:
         if "grave" in self.sourceFont:
             self.sourceFont["grave"].glyphclass="baseglyph"
 
-    def generate(self, sourceFonts, infile, variation):
+    def generate(self, sourceFonts, infile, family, variation):
         sourceFont = sourceFonts[0]
         # the `PfEd-comments` flag is required for Fontforge to save '.comment' and '.fontlog'.
         gen_flags = (str('opentype'), str('PfEd-comments'), str('no-FFTM-table'))
@@ -266,7 +270,7 @@ class font_patcher:
         if not fontname:
             fontname = sourceFont.cidfontname
         outfile = os.path.normpath(os.path.join(
-            sanitize_filename("PatchedFonts\\Cascadia" + variation + "\\", True),
+            sanitize_filename("PatchedFonts\\" + family + variation + "\\", True),
             sanitize_filename(fontname) + ".otf"))
         # the `PfEd-comments` flag is required for Fontforge to save '.comment' and '.fontlog'.
         bitmaps = str()
@@ -298,42 +302,16 @@ class font_patcher:
         dest_font.close()
         logger.debug(message)
 
-    def setup_font_names(self, font, variation, splitcollection=True):
+    def setup_font_names(self, font, family, variation, splitcollection=True):
         isItalic = font.fontname.endswith("Italic")
-        style = font.fontname[13:].removesuffix("Italic")
+        style = font.fontname.split("-")[1].removesuffix("Italic")
         # the weight here is not following guideline !!!
         if splitcollection:
-            weightMapping = {
-                "ExtraLight": "Regular",
-                "Light": "Bold",
-                "SemiLight": "Regular",
-                "Regular": "Bold",
-                "": "Bold",
-                "SemiBold": "Regular",
-                "Bold": "Bold",
-            }
-            familySuffixMapping = {
-                "ExtraLight": " Light",
-                "Light": " Light",
-                "SemiLight": "",
-                "Regular": "",
-                "": "",
-                "SemiBold": " Heavy",
-                "Bold": " Heavy",
-            }
-            familyname = "Cascadia " + variation + familySuffixMapping[style]
+            familyname = family + " " + variation + " " + fsuffix[family][style]
+            weight = fweight[family][style]
         else:
-            weightMapping = {
-                "ExtraLight": "Thin",
-                "Light": "Light",
-                "SemiLight": "Regular",
-                "Regular": "Medium",
-                "": "Medium",
-                "SemiBold": "Bold",
-                "Bold": "Heavy",
-            }
-            familyname = "Cascadia " + variation
-        weight = weightMapping[style]
+            familyname = family + " " + variation
+            weight = weight[family][style]
         if isItalic:
             if weight == "Regular":
                 subFamily = "Italic"
@@ -342,19 +320,20 @@ class font_patcher:
         else:
             subFamily = weight
         fontname = (familyname + "-" + subFamily).replace(" ", "")
-        fullname = familyname + " " + subFamily
+        fullname = (familyname + " " + subFamily).replace("  ", " ")
+        familyname = familyname.removesuffix(" ")
         if variation == "Nerd":
             projectInfo = (
-                "* Cascadia Version: 2111.01\n"
+                "* " + family + " Version: " + fontversion[family] + "\n"
                 "* Nerd Version: " + version + "\n"
                 "\n"
-                "Powered by LNK LEO & Microsoft & Nerd"
+                "Patched by LNKLEO"
             )
         else:
             projectInfo = (
-                "* Cascadia Version: 2111.01\n"
+                "* " + family + " Version: " + fontversion[family] + "\n"
                 "\n"
-                "Powered by Microsoft (Modified by LNK LEO)"
+                "Patched by LNKLEO"
             )
 
         while (font.sfnt_names[1][2] != familyname
@@ -368,6 +347,7 @@ class font_patcher:
             font.fontname = trick()
             font.fullname = trick()
             font.familyname = trick()
+            font.appendSFNTName(str('English (US)'), str('Fullname'), fullname)
             font.appendSFNTName(str('English (US)'), str('SubFamily'), subFamily)
             font.appendSFNTName(str('English (US)'), str('Family'), familyname)
             font.appendSFNTName(str('English (US)'), str('Preferred Family'), familyname)
@@ -378,9 +358,9 @@ class font_patcher:
             font.familyname = familyname
         
         if variation == "Nerd":
-            uniqueID = "2111.001-" + version + ";LNKLEO;SAJA;NERD;" + fontname
+            uniqueID = fontversion[family] + "+N" + version + ";" + uid[family] + ";NERD;LNKL;" + fontname
         else:
-            uniqueID = "2111.001" + ";LNKLEO;SAJA;" + fontname
+            uniqueID = fontversion[family] + "" + ";" + uid[family] + ";LNKL;" + fontname
         font.appendSFNTName(str('English (US)'), str('UniqueID'), uniqueID)
         font.appendSFNTName(str('English (US)'), str('Version'), self.sourceFont.version)
         font.appendSFNTName(str('English (US)'), str('SubFamily'), subFamily)
@@ -396,16 +376,20 @@ class font_patcher:
         font.comment = projectInfo
         font.fontlog = projectInfo
 
-    def setup_version(self, variation):
+    def setup_version(self, family, variation):
         """ Add the Nerd Font version to the original version """
-        # print("Version was {}".format(sourceFont.version))
+        print("Version was {}".format(self.sourceFont.version))
+        self.sourceFont.version = fontversion[family]
         if variation == 'Nerd':
-            self.sourceFont.version += "; Nerd " + version
+            self.sourceFont.version += "+N" + version
         self.sourceFont.sfntRevision = None # Auto-set (refreshed) by fontforge
         self.sourceFont.appendSFNTName(str('English (US)'), str('Version'), "Version " + self.sourceFont.version)
         print("Version now is {}".format(self.sourceFont.version))
 
     def setup_patch_set(self):
+        if (debug):
+            self.patch_set = []
+            return
         """ Creates list of dicts to with instructions on copying glyphs from each symbol font into self.sourceFont """
 
         box_enabled = not self.symbolsonly # Box glyph only for monospaced and not for Symbols Only
@@ -654,7 +638,6 @@ class font_patcher:
             range(0xf000, 0xf0cb + 1), # lots of clouds and other (Please read note above!)
         ]}
         MDI_SCALE_LIST = None # Maybe later add some selected ScaleGroups
-
 
         # Define the character ranges
         # Symbol font ranges
@@ -1356,23 +1339,30 @@ def main():
     patcher = font_patcher()
 
     make_sure_path_exists("PatchedFonts")
-    for variation in ["Nerd", "Code", "Mono"]:
-        make_sure_path_exists("PatchedFonts/Cascadia" + variation)
-        for walker in os.walk("SourceFonts/Cascadia" + variation.replace("Nerd", "Code")):
-            for cascadia in walker[2]:
-                if cascadia.split(".")[-1] != "otf":
+    nfmapping = [
+        ["CascadiaCode", "CascadiaNerd", "Cascadia", "Nerd"],
+        ["CascadiaCode", "CascadiaCode", "Cascadia", "Code"],
+        ["CascadiaMono", "CascadiaMono", "Cascadia", "Mono"],
+        ["MapleMono",    "MapleNerd",    "Maple",    "Nerd"],
+        ["MapleMono",    "MapleCode",    "Maple",    "Code"],
+    ]
+    for font in nfmapping:
+        make_sure_path_exists("PatchedFonts/" + font[1])
+        for walker in os.walk("SourceFonts/" + font[0]):
+            for workingfont in walker[2]:
+                if workingfont.split(".")[-1] != "otf":
                     continue
                 sourceFonts = []
-                all_fonts = fontforge.fontsInFile(os.path.join(walker[0], cascadia))
+                all_fonts = fontforge.fontsInFile(os.path.join(walker[0], workingfont))
                 for i, subfont in enumerate(all_fonts):
                     print("\nProcessing {} ({}/{})".format(subfont, i + 1, len(all_fonts)))
-                    sourceFonts.append(fontforge.open("{}({})".format(os.path.join(walker[0], cascadia), subfont), 1)) # 1 = ("fstypepermitted",))
-                    patcher.patch(sourceFonts[-1], variation)
-                print("\nDone with Patch Sets/Modify, generating font...\n")
+                    sourceFonts.append(fontforge.open("{}({})".format(os.path.join(walker[0], workingfont), subfont), 1)) # 1 = ("fstypepermitted",))
+                    patcher.patch(sourceFonts[-1], font[2], font[3])
+                print("\nDone with Patch Sets/Modify, generating workingfont...\n")
 
                 for f in sourceFonts:
-                    patcher.setup_font_names(f, variation)
-                patcher.generate(sourceFonts, os.path.join(walker[0], cascadia), variation)
+                    patcher.setup_font_names(f, font[2], font[3])
+                patcher.generate(sourceFonts, os.path.join(walker[0], workingfont), font[2], font[3])
 
                 for f in sourceFonts:
                     f.close()
