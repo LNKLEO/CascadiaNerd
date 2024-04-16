@@ -31,7 +31,7 @@ All files created such as `font-patcher` and any `ph` or `sh` script/source file
 
 ### Additional notes
 
-* font awesome - we use the fonts which are SIL OFL 1.1, the icons are CC 4.0. We also adhere to the RFN condition to the best of our ability
+* font awesome - we use the icons which are CC 4.0.
 * weather icons - project is unfortunately dead, but added the OFL license files to comply.
 
 ## Fonts
