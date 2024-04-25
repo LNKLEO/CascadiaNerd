@@ -1,6 +1,6 @@
 fontversion = {
     "Cascadia": "2111.01",
-    "Maple": "7.0beta13"
+    "Maple": "7.0beta14"
 }
 
 fweight = {
