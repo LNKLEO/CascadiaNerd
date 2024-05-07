@@ -6,12 +6,10 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 # Change the script version when you edit this script:
-script_version = "4.13.1"
+script_version = "4.14.3*"
 
-version = "3.2.1"
+version = "3.2.1*"
 projectName = "Nerd Fonts"
-projectNameAbbreviation = "NF"
-projectNameSingular = projectName[:-1]
 
 debug = False
 
@@ -22,8 +20,7 @@ import psMat
 import fontforge
 import random
 import string
-# import subprocess
-# import json
+import re
 from enum import Enum
 import logging
 
@@ -206,6 +203,7 @@ class font_patcher:
     def patch(self, font, family, variation):
         self.sourceFont = font
         self.setup_version(family, variation)
+        self.manipulate_hints(family)
         self.get_essential_references()
         self.get_sourcefont_dimensions()
         self.setup_patch_set()
@@ -266,6 +264,7 @@ class font_patcher:
         sourceFont = sourceFonts[0]
         # the `PfEd-comments` flag is required for Fontforge to save '.comment' and '.fontlog'.
         gen_flags = (str('opentype'), str('PfEd-comments'), str('no-FFTM-table'))
+
         fontname = sourceFont.fullname
         if not fontname:
             fontname = sourceFont.cidfontname
@@ -283,7 +282,6 @@ class font_patcher:
         # Adjust flags that can not be changed via fontforge
         source_font = TableHEADWriter(infile)
         dest_font = TableHEADWriter(outfile)
-        # Adjust flags that can not be changed via fontforge
         for idx in range(source_font.num_fonts):
             logger.debug("Tweaking %d/%d", idx + 1, source_font.num_fonts)
             source_font.find_head_table(idx)
@@ -385,6 +383,22 @@ class font_patcher:
         self.sourceFont.sfntRevision = None # Auto-set (refreshed) by fontforge
         self.sourceFont.appendSFNTName(str('English (US)'), str('Version'), "Version " + self.sourceFont.version)
         print("Version now is {}".format(self.sourceFont.version))
+
+    def manipulate_hints(self, family):
+        """ Redo the hinting on some problematic glyphs """
+        if family in rehint.keys():
+            redo = rehint[family]
+            logger.debug("Working on {} rehinting rules (this may create a lot of fontforge warnings)".format(len(redo)))
+            count = 0
+            for gname in self.sourceFont:
+                for regex in redo:
+                    if re.fullmatch(regex, gname):
+                        glyph = self.sourceFont[gname]
+                        glyph.autoHint()
+                        glyph.autoInstr()
+                        count += 1
+                        break
+            logger.info("Rehinted {} glyphs".format(count))
 
     def setup_patch_set(self):
         if (debug):
@@ -501,7 +515,7 @@ class font_patcher:
             0xf0de: {'align': 'c', 'valign': '', 'stretch': 'pa', 'params': {}}
         }
         SYM_ATTR_HEAVYBRACKETS = {
-            'default': {'align': 'c', 'valign': 'c', 'stretch': 'pa1!', 'params': {'ypadding': 0.3, 'careful': True}}
+            'default': {'align': 'c', 'valign': 'c', 'stretch': '^pa1!', 'params': {'ypadding': 0.3, 'careful': True}}
         }
         SYM_ATTR_BOX = {
             'default': {'align': 'c', 'valign': 'c', 'stretch': '^xy', 'params': {'overlap': 0.02, 'dont_copy': box_keep}},
@@ -642,31 +656,31 @@ class font_patcher:
         # Define the character ranges
         # Symbol font ranges
         self.patch_set = [
-            {'Name': "Seti-UI + Custom",        'Filename': "original-source.otf",                            'Exact': False, 'SymStart': 0xE4FA, 'SymEnd': 0xE5FF, 'SrcStart': 0xE5FA, 'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
-            {'Name': "Heavy Angle Brackets",    'Filename': "extraglyphs.sfd",                                'Exact': True,  'SymStart': 0x276C, 'SymEnd': 0x2771, 'SrcStart': None,   'ScaleRules': HEAVY_SCALE_LIST, 'Attributes': SYM_ATTR_HEAVYBRACKETS},
-            {'Name': "Box Drawing",             'Filename': "extraglyphs.sfd",                                'Exact': True,  'SymStart': 0x2500, 'SymEnd': 0x259F, 'SrcStart': None,   'ScaleRules': BOX_SCALE_LIST,   'Attributes': SYM_ATTR_BOX},
-            {'Name': "Devicons",                'Filename': "devicons/devicons.ttf",                          'Exact': False, 'SymStart': 0xE600, 'SymEnd': 0xE6C5, 'SrcStart': 0xE700, 'ScaleRules': DEVI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},
-            {'Name': "Powerline Symbols",       'Filename': "powerline-symbols/PowerlineSymbols.otf",         'Exact': True,  'SymStart': 0xE0A0, 'SymEnd': 0xE0A2, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
-            {'Name': "Powerline Symbols",       'Filename': "powerline-symbols/PowerlineSymbols.otf",         'Exact': True,  'SymStart': 0xE0B0, 'SymEnd': 0xE0B3, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
-            {'Name': "Powerline Extra Symbols", 'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0xE0A3, 'SymEnd': 0xE0A3, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
-            {'Name': "Powerline Extra Symbols", 'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0xE0B4, 'SymEnd': 0xE0C8, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
-            {'Name': "Powerline Extra Symbols", 'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0xE0CA, 'SymEnd': 0xE0CA, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
-            {'Name': "Powerline Extra Symbols", 'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0xE0CC, 'SymEnd': 0xE0D7, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
-            {'Name': "Powerline Extra Symbols", 'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0x2630, 'SymEnd': 0x2630, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_TRIGRAPH},
-            {'Name': "Pomicons",                'Filename': "pomicons/Pomicons.otf",                          'Exact': True,  'SymStart': 0xE000, 'SymEnd': 0xE00A, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
-            {'Name': "Font Awesome",            'Filename': "font-awesome/FontAwesome.otf",                   'Exact': True,  'SymStart': 0xED00, 'SymEnd': 0xF2FF, 'SrcStart': None,   'ScaleRules': FONTA_SCALE_LIST, 'Attributes': SYM_ATTR_FONTA},
-            {'Name': "Font Awesome Extension",  'Filename': "font-awesome-extension.ttf",                     'Exact': False, 'SymStart': 0xE000, 'SymEnd': 0xE0A9, 'SrcStart': 0xE200, 'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},  # Maximize
-            {'Name': "Power Symbols",           'Filename': "Unicode_IEC_symbol_font.otf",                    'Exact': True,  'SymStart': 0x23FB, 'SymEnd': 0x23FE, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},  # Power, Power On/Off, Power On, Sleep
-            {'Name': "Power Symbols",           'Filename': "Unicode_IEC_symbol_font.otf",                    'Exact': True,  'SymStart': 0x2B58, 'SymEnd': 0x2B58, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},  # Heavy Circle (aka Power Off)
-            {'Name': "Material legacy",         'Filename': "materialdesign/materialdesignicons-webfont.ttf", 'Exact': False, 'SymStart': 0xF001, 'SymEnd': 0xF847, 'SrcStart': 0xF500, 'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
-            {'Name': "Material",                'Filename': "materialdesign/MaterialDesignIconsDesktop.ttf",  'Exact': True,  'SymStart': 0xF0001,'SymEnd': 0xF1AF0,'SrcStart': None,   'ScaleRules': MDI_SCALE_LIST,   'Attributes': SYM_ATTR_DEFAULT},
-            {'Name': "Weather Icons",           'Filename': "weather-icons/weathericons-regular-webfont.ttf", 'Exact': False, 'SymStart': 0xF000, 'SymEnd': 0xF0EB, 'SrcStart': 0xE300, 'ScaleRules': WEATH_SCALE_LIST, 'Attributes': SYM_ATTR_DEFAULT},
-            {'Name': "Font Logos",              'Filename': "font-logos.ttf",                                 'Exact': True,  'SymStart': 0xF300, 'SymEnd': 0xF375, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
-            {'Name': "Octicons",                'Filename': "octicons/octicons.ttf",                          'Exact': False, 'SymStart': 0xF000, 'SymEnd': 0xF105, 'SrcStart': 0xF400, 'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},  # Magnifying glass
-            {'Name': "Octicons",                'Filename': "octicons/octicons.ttf",                          'Exact': True,  'SymStart': 0x2665, 'SymEnd': 0x2665, 'SrcStart': None,   'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},  # Heart
-            {'Name': "Octicons",                'Filename': "octicons/octicons.ttf",                          'Exact': True,  'SymStart': 0X26A1, 'SymEnd': 0X26A1, 'SrcStart': None,   'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},  # Zap
-            {'Name': "Octicons",                'Filename': "octicons/octicons.ttf",                          'Exact': False, 'SymStart': 0xF27C, 'SymEnd': 0xF306, 'SrcStart': 0xF4A9, 'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},
-            {'Name': "Codicons",                'Filename': "codicons/codicon.ttf",                           'Exact': True,  'SymStart': 0xEA60, 'SymEnd': 0xEC1E, 'SrcStart': None,   'ScaleRules': CODI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "SetiUI+Custom",        'Filename': "original-source.otf",                            'Exact': False, 'SymStart': 0xE4FA, 'SymEnd': 0xE5FF, 'SrcStart': 0xE5FA, 'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "HeavyAngleBrackets",   'Filename': "extraglyphs.sfd",                                'Exact': True,  'SymStart': 0x276C, 'SymEnd': 0x2771, 'SrcStart': None,   'ScaleRules': HEAVY_SCALE_LIST, 'Attributes': SYM_ATTR_HEAVYBRACKETS},
+            {'Name': "BoxDrawing",           'Filename': "extraglyphs.sfd",                                'Exact': True,  'SymStart': 0x2500, 'SymEnd': 0x259F, 'SrcStart': None,   'ScaleRules': BOX_SCALE_LIST,   'Attributes': SYM_ATTR_BOX},
+            {'Name': "Devicons",             'Filename': "devicons/devicons.ttf",                          'Exact': False, 'SymStart': 0xE600, 'SymEnd': 0xE6C5, 'SrcStart': 0xE700, 'ScaleRules': DEVI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "Powerline",            'Filename': "powerline-symbols/PowerlineSymbols.otf",         'Exact': True,  'SymStart': 0xE0A0, 'SymEnd': 0xE0A2, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
+            {'Name': "Powerline",            'Filename': "powerline-symbols/PowerlineSymbols.otf",         'Exact': True,  'SymStart': 0xE0B0, 'SymEnd': 0xE0B3, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
+            {'Name': "PowerlineExtra",       'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0xE0A3, 'SymEnd': 0xE0A3, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
+            {'Name': "PowerlineExtra",       'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0xE0B4, 'SymEnd': 0xE0C8, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
+            {'Name': "PowerlineExtra",       'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0xE0CA, 'SymEnd': 0xE0CA, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
+            {'Name': "PowerlineExtra",       'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0xE0CC, 'SymEnd': 0xE0D7, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_POWERLINE},
+            {'Name': "PowerlineExtra",       'Filename': "powerline-extra/PowerlineExtraSymbols.otf",      'Exact': True,  'SymStart': 0x2630, 'SymEnd': 0x2630, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_TRIGRAPH},
+            {'Name': "Pomicons",             'Filename': "pomicons/Pomicons.otf",                          'Exact': True,  'SymStart': 0xE000, 'SymEnd': 0xE00A, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "FontAwesome",          'Filename': "font-awesome/FontAwesome.otf",                   'Exact': True,  'SymStart': 0xED00, 'SymEnd': 0xF2FF, 'SrcStart': None,   'ScaleRules': FONTA_SCALE_LIST, 'Attributes': SYM_ATTR_FONTA},
+            {'Name': "FontAwesomeExtension", 'Filename': "font-awesome-extension.ttf",                     'Exact': False, 'SymStart': 0xE000, 'SymEnd': 0xE0A9, 'SrcStart': 0xE200, 'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},  # Maximize
+            {'Name': "Power",                'Filename': "Unicode_IEC_symbol_font.otf",                    'Exact': True,  'SymStart': 0x23FB, 'SymEnd': 0x23FE, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},  # Power, Power On/Off, Power On, Sleep
+            {'Name': "Power",                'Filename': "Unicode_IEC_symbol_font.otf",                    'Exact': True,  'SymStart': 0x2B58, 'SymEnd': 0x2B58, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},  # Heavy Circle (aka Power Off)
+            {'Name': "MaterialLegacy",       'Filename': "materialdesign/materialdesignicons-webfont.ttf", 'Exact': False, 'SymStart': 0xF001, 'SymEnd': 0xF847, 'SrcStart': 0xF500, 'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "Material",             'Filename': "materialdesign/MaterialDesignIconsDesktop.ttf",  'Exact': True,  'SymStart': 0xF0001,'SymEnd': 0xF1AF0,'SrcStart': None,   'ScaleRules': MDI_SCALE_LIST,   'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "Weather",              'Filename': "weather-icons/weathericons-regular-webfont.ttf", 'Exact': False, 'SymStart': 0xF000, 'SymEnd': 0xF0EB, 'SrcStart': 0xE300, 'ScaleRules': WEATH_SCALE_LIST, 'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "Logos",                'Filename': "font-logos.ttf",                                 'Exact': True,  'SymStart': 0xF300, 'SymEnd': 0xF375, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "Octicons",             'Filename': "octicons/octicons.ttf",                          'Exact': False, 'SymStart': 0xF000, 'SymEnd': 0xF105, 'SrcStart': 0xF400, 'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},  # Magnifying glass
+            {'Name': "Octicons",             'Filename': "octicons/octicons.ttf",                          'Exact': True,  'SymStart': 0x2665, 'SymEnd': 0x2665, 'SrcStart': None,   'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},  # Heart
+            {'Name': "Octicons",             'Filename': "octicons/octicons.ttf",                          'Exact': True,  'SymStart': 0X26A1, 'SymEnd': 0X26A1, 'SrcStart': None,   'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},  # Zap
+            {'Name': "Octicons",             'Filename': "octicons/octicons.ttf",                          'Exact': False, 'SymStart': 0xF27C, 'SymEnd': 0xF306, 'SrcStart': 0xF4A9, 'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "Codicons",             'Filename': "codicons/codicon.ttf",                           'Exact': True,  'SymStart': 0xEA60, 'SymEnd': 0xEC1E, 'SrcStart': None,   'ScaleRules': CODI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},
         ]
 
     def improve_line_dimensions(self):
@@ -945,10 +959,12 @@ class font_patcher:
             if do_careful or currentSourceFontGlyph in self.essential:
                 if currentSourceFontGlyph in self.sourceFont:
                     careful_type = 'essential' if currentSourceFontGlyph in self.essential else 'existing'
-                    logger.debug("Found %s Glyph at %X. Skipping...", careful_type, currentSourceFontGlyph)
-                    # We don't want to touch anything so move to next Glyph
-                    continue
-            else:
+                    # logger.debug("Found %s Glyph at %X. Skipping...", careful_type, currentSourceFontGlyph)
+                    # # We don't want to touch anything so move to next Glyph
+                    # continue
+                    logger.debug("Found %s Glyph at %X. Replacing...", careful_type, currentSourceFontGlyph)
+            # else:
+            if True:
                 # If we overwrite an existing glyph all subtable entries regarding it will be wrong
                 # (Probably; at least if we add a symbol and do not substitude a ligature or such)
                 if currentSourceFontGlyph in self.sourceFont:
@@ -1324,18 +1340,38 @@ def update_progress(progress):
     if progress >= 1:
         progress = 1
     block = int(round(barLength * progress))
-    text = "\r╢{0}╟ {1}%".format("█" * block + "░" * (barLength - block), (str(progress * 100.)+"00")[:5])
+    text = "╟{0}╢ {1}%\r".format("█" * block + "░" * (barLength - block), (str(progress * 100.)+"00")[:5])
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def main():
+def setup_global_logger(ver, debugmode = 2):
+    """ Set up the logger and take options into account """
     global logger
-    logger = logging.getLogger("start") # Use start logger until we can set up something sane
-    s_handler = logging.StreamHandler(stream=sys.stdout)
-    s_handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
-    logger.addHandler(s_handler)
+    logger = logging.getLogger("NERD")
+    
+    logger.setLevel(logging.DEBUG)
+    log_to_file = (debugmode & 1 == 1)
 
-    print("Patcher v{} executing".format(script_version))
+    if log_to_file:
+        try:
+            f_handler = logging.FileHandler('font-patcher-log.txt')
+            f_handler.setFormatter(logging.Formatter('%(levelname)s: %(name)s %(message)s'))
+            logger.addHandler(f_handler)
+        except:
+            log_to_file = False
+        logger.info(ver)
+
+    c_handler = logging.StreamHandler(stream=sys.stdout)
+    c_handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+    if not (debugmode & 2 == 2):
+        c_handler.setLevel(logging.INFO)
+    logger.addHandler(c_handler)
+    if (debugmode & 1 == 1) and not log_to_file:
+        logger.info("Can not write logfile, disabling")
+
+def main():
+    setup_global_logger("Patcher NF{} ({}) (ff {})".format(version, script_version, fontforge.version()))
+
     patcher = font_patcher()
 
     make_sure_path_exists("PatchedFonts")

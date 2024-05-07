@@ -3,6 +3,14 @@ fontversion = {
     "Maple": "7.0beta15"
 }
 
+rehint = {
+    "Cascadia": {
+        ".*hyphen.*\\.(liga|seq)",
+        ".*equal.*\\.(liga|seq)",
+        ".*numbersign.*\\.(liga|seq)"
+    }
+}
+
 fweight = {
     "Cascadia": {
         "ExtraLight": "Regular",
