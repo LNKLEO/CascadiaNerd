@@ -3,7 +3,7 @@
 # Nerd Fonts Version: 3.2.1++
 
 # Change the script version* when you edit this script:
-script_version = "4.14.3++"
+script_version = "4.14.3+++"
 
 version = "3.2.1++"
 projectName = "Nerd Fonts"
@@ -18,6 +18,7 @@ import fontforge
 import random
 import string
 import re
+import shutil
 from enum import Enum
 import logging
 
@@ -1332,11 +1333,13 @@ def update_progress(progress):
     A value at 1 or bigger represents 100%
     modified from: https://stackoverflow.com/questions/3160699/python-progress-bar
     """
-    barLength = 128  # Modify this to change the length of the progress bar
+    barLength = shutil.get_terminal_size((128,)).columns - 64 # Modify this to change the length of the progress bar
     if progress >= 1:
         progress = 1
-    block = int(round(barLength * progress))
-    text = "╟{0}╢ {1}%\r".format("█" * block + "░" * (barLength - block), (str(progress * 100.)+"00")[:5])
+    block = int(round(barLength * progress - 0.5))
+    octb = " ▏▎▍▌▋▊▉█"
+    octi = "⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿"
+    text = "\r┃{0}┃ {1}% ".format("█" * block + octb[round((barLength * progress) % 1 * 8 - 0.5)] * (block < barLength)+ " " * (barLength - block - 1), (str(progress * 100.)+"00")[:5])
     sys.stdout.write(text)
     sys.stdout.flush()
 
