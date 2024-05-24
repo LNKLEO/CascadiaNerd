@@ -1,6 +1,6 @@
 fontversion = {
     "Cascadia": "2404.23",
-    "Maple": "7.0beta18"
+    "Maple": "7.0beta19"
 }
 
 rehint = {
