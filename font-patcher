@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding=utf8
-# Nerd Fonts Version: 3.2.1++
+# Nerd Fonts Version: 3.2.1+++
 
 # Change the script version* when you edit this script:
-script_version = "4.14.3+++"
+script_version = "4.14.3++++"
 
-version = "3.2.1++"
+version = "3.2.1+++"
 projectName = "Nerd Fonts"
 
 debug = False
@@ -631,24 +631,24 @@ class font_patcher:
                 range(0xf2c2, 0xf2c5 + 1), # move to
                 [0xf07b, 0xf0a1, 0xf0d6, 0xf306], # bookmarks
         ]}
-        WEATH_SCALE_LIST = {'ScaleGroups': [
-            [0xf03c, 0xf042, 0xf045 ], # degree signs
-            [0xf043, 0xf044, 0xf048, 0xf04b, 0xf04c, 0xf04d, 0xf057, 0xf058, 0xf087, 0xf088], # arrows
-            range(0xf053, 0xf055 + 1), # thermometers
-            [*range(0xf059, 0xf061 + 1), 0xf0b1], # wind directions
-            range(0xf089, 0xf094 + 1), # clocks
-            range(0xf095, 0xf0b0 + 1), # moon phases
-            range(0xf0b7, 0xf0c3 + 1), # wind strengths
-            [0xf06e, 0xf070 ], # solar/lunar eclipse
-            # Note: Codepoints listed before that are also in the following range
-            # will take the scaling of the previous group (the ScaleGroups are
-            # searched through in definition order).
-            # But be careful, the combined bounding box for the following group
-            # _will_ include all glyphs in its definition: Make sure the exempt
-            # glyphs from above are smaller (do not extend) the combined bounding
-            # box of this range:
-            range(0xf000, 0xf0cb + 1), # lots of clouds and other (Please read note above!)
-        ]}
+        # WEATH_SCALE_LIST = {'ScaleGroups': [
+        #     [0xf03c, 0xf042, 0xf045 ], # degree signs
+        #     [0xf043, 0xf044, 0xf048, 0xf04b, 0xf04c, 0xf04d, 0xf057, 0xf058, 0xf087, 0xf088], # arrows
+        #     range(0xf053, 0xf055 + 1), # thermometers
+        #     [*range(0xf059, 0xf061 + 1), 0xf0b1], # wind directions
+        #     range(0xf089, 0xf094 + 1), # clocks
+        #     range(0xf095, 0xf0b0 + 1), # moon phases
+        #     range(0xf0b7, 0xf0c3 + 1), # wind strengths
+        #     [0xf06e, 0xf070 ], # solar/lunar eclipse
+        #     # Note: Codepoints listed before that are also in the following range
+        #     # will take the scaling of the previous group (the ScaleGroups are
+        #     # searched through in definition order).
+        #     # But be careful, the combined bounding box for the following group
+        #     # _will_ include all glyphs in its definition: Make sure the exempt
+        #     # glyphs from above are smaller (do not extend) the combined bounding
+        #     # box of this range:
+        #     range(0xf000, 0xf0cb + 1), # lots of clouds and other (Please read note above!)
+        # ]}
         MDI_SCALE_LIST = None # Maybe later add some selected ScaleGroups
 
         # Define the character ranges
@@ -671,7 +671,7 @@ class font_patcher:
             {'Name': "Power",                'Filename': "Unicode_IEC_symbol_font.otf",                    'Exact': True,  'SymStart': 0x23FB, 'SymEnd': 0x23FE, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},  # Power, Power On/Off, Power On, Sleep
             {'Name': "Power",                'Filename': "Unicode_IEC_symbol_font.otf",                    'Exact': True,  'SymStart': 0x2B58, 'SymEnd': 0x2B58, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},  # Heavy Circle (aka Power Off)
             {'Name': "Material",             'Filename': "materialdesign/MaterialDesignIconsDesktop.ttf",  'Exact': True,  'SymStart': 0xF0001,'SymEnd': 0xF1AF0,'SrcStart': None,   'ScaleRules': MDI_SCALE_LIST,   'Attributes': SYM_ATTR_DEFAULT},
-            {'Name': "Weather",              'Filename': "weather-icons/weathericons-regular-webfont.ttf", 'Exact': False, 'SymStart': 0xF000, 'SymEnd': 0xF0EB, 'SrcStart': 0xE300, 'ScaleRules': WEATH_SCALE_LIST, 'Attributes': SYM_ATTR_DEFAULT},
+            {'Name': "Weather",              'Filename': "weather-icons/weathericons-regular-webfont.ttf", 'Exact': False, 'SymStart': 0xF000, 'SymEnd': 0xF0EB, 'SrcStart': 0xE300, 'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
             {'Name': "Logos",                'Filename': "font-logos.ttf",                                 'Exact': True,  'SymStart': 0xF300, 'SymEnd': 0xF375, 'SrcStart': None,   'ScaleRules': None,             'Attributes': SYM_ATTR_DEFAULT},
             {'Name': "Octicons",             'Filename': "octicons/octicons.ttf",                          'Exact': False, 'SymStart': 0xF000, 'SymEnd': 0xF105, 'SrcStart': 0xF400, 'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},  # Magnifying glass
             {'Name': "Octicons",             'Filename': "octicons/octicons.ttf",                          'Exact': True,  'SymStart': 0x2665, 'SymEnd': 0x2665, 'SrcStart': None,   'ScaleRules': OCTI_SCALE_LIST,  'Attributes': SYM_ATTR_DEFAULT},  # Heart
