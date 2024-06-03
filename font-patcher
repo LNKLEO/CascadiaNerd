@@ -21,6 +21,7 @@ import re
 import shutil
 from enum import Enum
 import logging
+import math
 
 from fontmeta import *
 
@@ -1336,10 +1337,10 @@ def update_progress(progress):
     barLength = shutil.get_terminal_size((128,)).columns - 64 # Modify this to change the length of the progress bar
     if progress >= 1:
         progress = 1
-    block = int(round(barLength * progress - 0.5))
+    block = math.floor(barLength * progress)
     octb = " ▏▎▍▌▋▊▉█"
     octi = "⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿"
-    text = "\r┃{0}┃ {1}% ".format("█" * block + octb[round((barLength * progress) % 1 * 8 - 0.5)] * (block < barLength)+ " " * (barLength - block - 1), (str(progress * 100.)+"00")[:5])
+    text = "\r┃{0}┃ {1}% ".format("█" * block + octb[math.floor((barLength * progress) % 1 * 9)] * (block < barLength)+ " " * (barLength - block - 1), (str(progress * 100.)+"00")[:5])
     sys.stdout.write(text)
     sys.stdout.flush()
 
